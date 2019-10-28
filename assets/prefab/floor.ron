@@ -1,0 +1,24 @@
+#![enable(implicit_some)]
+/*!
+    @import $CARGO_HOME$/registry/src/github.com-1ecc6299db9ec823/amethyst_assets-0.9.0/src/prefab/mod.rs#Prefab
+    @import ../../src/rgame.rs#FloorPrefab
+    Prefab<FloorPrefab>
+*/
+Prefab (
+    entities: [
+        (
+            data: (
+                graphics: (
+                    mesh: Shape((shape: Cube)),
+                    material: (
+                        albedo: Generate(Srgba(0.4, 0.4, 0.4, 1.0))
+                    )
+                ),
+                transform: (
+                    translation: (0, -0.01, 0),
+                    scale: (200.0, 0.01, 200.0),
+                ),
+            )
+        )
+    ]
+)

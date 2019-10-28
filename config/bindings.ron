@@ -1,0 +1,6 @@
+(
+    axes: {
+        "move": Emulated(neg: Key(Left), pos: Key(Right))
+    },
+    actions: {},
+)
