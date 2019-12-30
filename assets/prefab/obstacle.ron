@@ -14,9 +14,6 @@ Prefab (
                         albedo: Generate(Srgba(1.0, 0.0, 0.0, 1.0))
                     )
                 ),
-                hitbox: (
-                    size: (2.0, 2.0, 2.0)
-                )
             )
         )
     ]

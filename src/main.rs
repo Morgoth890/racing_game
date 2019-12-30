@@ -38,6 +38,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::EnvironmentMovementSystem, "environment_movement_system", &[])
         .with(systems::ShipMovementSystem, "ship_system", &[])
         .with(systems::ObstacleSpawnSystem, "obstacle_spawn_system", &[])
+        .with(systems::CollisionDetectionSystem, "collision_detection_system", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(

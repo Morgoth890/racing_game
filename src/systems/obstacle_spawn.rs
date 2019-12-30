@@ -6,7 +6,7 @@ use amethyst::{
     ecs::prelude::Builder,
 };
 use rand::{thread_rng, Rng};
-use crate::rgame::{Obstacle, ObstacleSpawnData, PrefabResource};
+use crate::rgame::{Obstacle, ObstacleSpawnData, PrefabResource, HitBox};
 
 const SPAWN_INTERVAL: f32 = 1.0;
 
@@ -38,6 +38,7 @@ impl<'s> System<'s> for ObstacleSpawnSystem {
                 .with(prefab_resource.obstacle.clone())
                 .with(Obstacle)
                 .with(transform)
+                .with(HitBox { size: Vector3::new(0.3, 0.3, 0.3) })
                 .build();
 
             obstacle_spawn_data.next_spawn_time = absolute_time + SPAWN_INTERVAL as f64;

@@ -3,7 +3,7 @@ use amethyst::{
     core::transform::{Transform},
     core::math::Vector3,
     derive::PrefabData,
-    ecs::{Entity, Component, DenseVecStorage, NullStorage},
+    ecs::{Entity, Component, DenseVecStorage, NullStorage, WriteStorage},
     error::Error,
     prelude::*,
     renderer::{
@@ -27,7 +27,7 @@ use std::f32::consts::FRAC_PI_3;
 pub struct ShipPrefab {
     graphics: GraphicsPrefab<(Vec<Position>, Vec<Normal>, Vec<TexCoord>)>,
     transform: Transform,
-    hitbox: HitBox,
+//    hitbox: HitBox,
 }
 
 #[derive(Debug, Deserialize, Serialize, PrefabData, Default)]
@@ -48,7 +48,7 @@ pub struct FloorPrefab {
 #[serde(deny_unknown_fields)]
 pub struct ObstaclePrefab {
     graphics: GraphicsPrefab<(Vec<Position>, Vec<Normal>, Vec<TexCoord>)>,
-    hitbox: HitBox,
+//    hitbox: HitBox,
 }
 
 #[derive(Debug, Deserialize, Serialize, PrefabData, Default)]
@@ -58,14 +58,40 @@ impl Component for Obstacle {
     type Storage = NullStorage<Self>;
 }
 
-#[derive(Debug, Deserialize, Serialize, PrefabData, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct HitBox {
     pub size: Vector3<f32>
+}
+
+impl Default for HitBox {
+    fn default() -> Self {
+        HitBox {
+            size: Vector3::new(0.0, 0.0, 0.0)
+        }
+    }
 }
 
 impl Component for HitBox {
     type Storage = DenseVecStorage<Self>;
 }
+
+/*
+impl<'a> PrefabData<'a> for HitBox {
+    type SystemData = WriteStorage<'a, HitBox>;
+    type Result = ();
+
+    fn add_to_entity(
+        &self,
+        entity: Entity,
+        storages: &mut Self::SystemData,
+        _: &[Entity],
+        _: &[Entity],
+    ) -> Result<(), Error> {
+        storages.insert(entity, self.clone()).map(|_| ())?;
+        Ok(())
+    }
+}
+*/
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CameraConfig {
@@ -103,12 +129,15 @@ pub struct MyState;
 
 impl SimpleState for MyState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        data.world.register::<HitBox>();
+
         let handle = data.world.exec(|loader: PrefabLoader<'_, ShipPrefab>| {
             loader.load("prefab/ship.ron", RonFormat, ())
         });
         data.world.create_entity()
             .with(handle)
             .with(Ship)
+            .with(HitBox { size: Vector3::new(0.3, 0.3, 0.3) })
             .build();
 
         let handle = data.world.exec(|loader: PrefabLoader<'_, FloorPrefab>| {
