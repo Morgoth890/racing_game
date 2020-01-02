@@ -3,6 +3,7 @@ use amethyst::{
     core::transform::{TransformBundle},
     input::{InputBundle, StringBindings},
     prelude::*,
+    ui::{RenderUi, UiBundle},
     renderer::{
         plugins::{RenderShaded3D, RenderToWindow},
         types::DefaultBackend,
@@ -35,11 +36,12 @@ fn main() -> amethyst::Result<()> {
         .with_system_desc(PrefabLoaderSystemDesc::<ShipPrefab>::default(), "", &[])
         .with_system_desc(PrefabLoaderSystemDesc::<FloorPrefab>::default(), "", &[])
         .with_system_desc(PrefabLoaderSystemDesc::<ObstaclePrefab>::default(), "", &[])
+        .with_bundle(TransformBundle::new())?
+        .with_bundle(UiBundle::<StringBindings>::new())?
         .with(systems::EnvironmentMovementSystem, "environment_movement_system", &[])
         .with(systems::ShipMovementSystem, "ship_system", &[])
         .with(systems::ObstacleSpawnSystem, "obstacle_spawn_system", &[])
         .with(systems::CollisionDetectionSystem, "collision_detection_system", &[])
-        .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
@@ -47,6 +49,7 @@ fn main() -> amethyst::Result<()> {
                     RenderToWindow::from_config_path(display_config_path)
                         .with_clear([0.34, 0.36, 0.52, 1.0]),
                 )
+                .with_plugin(RenderUi::default())
                 .with_plugin(RenderShaded3D::default()),
         )?;
 
@@ -57,4 +60,3 @@ fn main() -> amethyst::Result<()> {
 
     Ok(())
 }
-

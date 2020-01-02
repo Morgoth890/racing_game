@@ -30,7 +30,6 @@ impl<'s> System<'s> for CollisionDetectionSystem {
                                    obstacle_transform.translation().y - obstacle_hitbox.size.y, obstacle_transform.translation().y + obstacle_hitbox.size.y)
                 && is_in_range(ship_transform.translation().z - ship_hitbox.size.z, ship_transform.translation().z + ship_hitbox.size.z,
                                        obstacle_transform.translation().z - obstacle_hitbox.size.z, obstacle_transform.translation().z + obstacle_hitbox.size.z) {
-//                    println!("Collided: {} with {}", ship_transform.translation(), obstacle_transform.translation());
                     println!("Collided!");
                     entities.delete(obstacle_entity).unwrap();
                 }

@@ -3,9 +3,11 @@ use amethyst::{
     core::transform::{Transform},
     core::math::Vector3,
     derive::PrefabData,
-    ecs::{Entity, Component, DenseVecStorage, NullStorage, WriteStorage},
+    ecs::{Entity, Component, DenseVecStorage, NullStorage},
     error::Error,
+    input::{is_close_requested, is_key_down},
     prelude::*,
+    ui::UiCreator,
     renderer::{
         Camera,
         camera,
@@ -14,8 +16,10 @@ use amethyst::{
         formats::GraphicsPrefab,
         rendy::mesh::{Normal, Position, TexCoord},
     },
+    winit::VirtualKeyCode,
 };
 use serde::{Deserialize, Serialize};
+use log::info;
 
 use std::f32::consts::FRAC_PI_3;
 
@@ -30,12 +34,9 @@ pub struct ShipPrefab {
 //    hitbox: HitBox,
 }
 
-#[derive(Debug, Deserialize, Serialize, PrefabData, Default)]
+#[derive(Component, Debug, Deserialize, Serialize, PrefabData, Default)]
+#[storage(NullStorage)]
 pub struct Ship;
-
-impl Component for Ship {
-    type Storage = NullStorage<Self>;
-}
 
 #[derive(Debug, Deserialize, Serialize, PrefabData)]
 #[serde(deny_unknown_fields)]
@@ -51,14 +52,12 @@ pub struct ObstaclePrefab {
 //    hitbox: HitBox,
 }
 
-#[derive(Debug, Deserialize, Serialize, PrefabData, Default)]
+#[derive(Component, Debug, Deserialize, Serialize, PrefabData, Default)]
+#[storage(NullStorage)]
 pub struct Obstacle;
 
-impl Component for Obstacle {
-    type Storage = NullStorage<Self>;
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Component, Debug, Deserialize, Serialize, Clone)]
+#[storage(DenseVecStorage)]
 pub struct HitBox {
     pub size: Vector3<f32>
 }
@@ -70,28 +69,6 @@ impl Default for HitBox {
         }
     }
 }
-
-impl Component for HitBox {
-    type Storage = DenseVecStorage<Self>;
-}
-
-/*
-impl<'a> PrefabData<'a> for HitBox {
-    type SystemData = WriteStorage<'a, HitBox>;
-    type Result = ();
-
-    fn add_to_entity(
-        &self,
-        entity: Entity,
-        storages: &mut Self::SystemData,
-        _: &[Entity],
-        _: &[Entity],
-    ) -> Result<(), Error> {
-        storages.insert(entity, self.clone()).map(|_| ())?;
-        Ok(())
-    }
-}
-*/
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CameraConfig {
@@ -129,6 +106,9 @@ pub struct MyState;
 
 impl SimpleState for MyState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+//        let StateData { mut world, .. } = data;
+//        Use world directly
+
         data.world.register::<HitBox>();
 
         let handle = data.world.exec(|loader: PrefabLoader<'_, ShipPrefab>| {
@@ -164,8 +144,39 @@ impl SimpleState for MyState {
         data.world.insert(prefab_resource);
         data.world.insert(ObstacleSpawnData::default());
 
+        data.world.exec(|mut creator: UiCreator<'_>| {
+            creator.create("prefab/ui.ron", ());
+        });
+
         initialize_camera(data.world);
         initialize_lights(data.world);
+    }
+
+    fn handle_event(
+        &mut self,
+        _data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent
+    ) -> SimpleTrans {
+        match &event {
+            StateEvent::Window(event) => {
+                if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+                    Trans::Quit
+                } else {
+                    Trans::None
+                }
+            }
+            StateEvent::Ui(ui_event) => {
+//                info!(
+//                    "[HANDLE_EVENT] Interacted with a ui element: {:?}",
+//                    ui_event
+//                );
+                Trans::None
+            }
+            StateEvent::Input(input) => {
+//                info!("Input Event detected: {:?}.", input);
+                Trans::None
+            }
+        }
     }
 }
 
