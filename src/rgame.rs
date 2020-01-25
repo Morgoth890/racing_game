@@ -109,48 +109,13 @@ pub struct MyState {
 
 impl SimpleState for MyState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-//        let StateData { mut world, .. } = data;
-//        Use world directly
+        let StateData { world, .. } = data;
 
-        data.world.register::<HitBox>();
+        self.ui_root = Some(world.exec(|mut creator: UiCreator<'_>| creator.create("ui/ui.ron", ())));
 
-        let handle = data.world.exec(|loader: PrefabLoader<'_, ShipPrefab>| {
-            loader.load("prefab/ship.ron", RonFormat, ())
-        });
-        data.world.create_entity()
-            .with(handle)
-            .with(Ship)
-            .with(HitBox { size: Vector3::new(0.3, 0.3, 0.3) })
-            .build();
-
-        let handle = data.world.exec(|loader: PrefabLoader<'_, FloorPrefab>| {
-            loader.load("prefab/floor.ron", RonFormat, ())
-        });
-        data.world.create_entity()
-            .with(handle)
-            .build();
-
-        let handle = data.world.exec(|loader: PrefabLoader<'_, FloorPrefab>| {
-            loader.load("prefab/road.ron", RonFormat, ())
-        });
-        data.world.create_entity()
-            .with(handle)
-            .build();
-
-        let handle = data.world.exec(|loader: PrefabLoader<'_, ObstaclePrefab>| {
-            loader.load("prefab/obstacle.ron", RonFormat, ())
-        });
-
-        let prefab_resource = PrefabResource {
-            obstacle: handle
-        };
-        data.world.insert(prefab_resource);
-        data.world.insert(ObstacleSpawnData::default());
-
-        self.ui_root = Some(data.world.exec(|mut creator: UiCreator<'_>| creator.create("ui/ui.ron", ())));
-
-        initialize_camera(data.world);
-        initialize_lights(data.world);
+        initialize_world_entities(world);
+        initialize_camera(world);
+        initialize_lights(world);
     }
 
     fn on_stop(&mut self, data: StateData<'_, GameData<'_, '_>>) {
@@ -181,6 +146,40 @@ impl SimpleState for MyState {
             _ => Trans::None
         }
     }
+}
+
+fn initialize_world_entities(world: &mut World) {
+    let handle = world.exec(|loader: PrefabLoader<'_, ShipPrefab>| {
+        loader.load("prefab/ship.ron", RonFormat, ())
+    });
+    world.create_entity()
+        .with(handle)
+        .with(Ship)
+        .with(HitBox { size: Vector3::new(0.3, 0.3, 0.3) })
+        .build();
+
+    let handle = world.exec(|loader: PrefabLoader<'_, FloorPrefab>| {
+        loader.load("prefab/floor.ron", RonFormat, ())
+    });
+    world.create_entity()
+        .with(handle)
+        .build();
+
+    let handle = world.exec(|loader: PrefabLoader<'_, FloorPrefab>| {
+        loader.load("prefab/road.ron", RonFormat, ())
+    });
+    world.create_entity()
+        .with(handle)
+        .build();
+
+    let handle = world.exec(|loader: PrefabLoader<'_, ObstaclePrefab>| {
+        loader.load("prefab/obstacle.ron", RonFormat, ())
+    });
+    let prefab_resource = PrefabResource {
+        obstacle: handle
+    };
+    world.insert(prefab_resource);
+    world.insert(ObstacleSpawnData::default());
 }
 
 fn initialize_camera(world: &mut World) {
