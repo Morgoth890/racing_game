@@ -19,12 +19,12 @@ use amethyst::{
     winit::VirtualKeyCode,
 };
 use serde::{Deserialize, Serialize};
-use log::info;
+//use log::info;
+
+use crate::screens::WelcomeState;
+use crate::util::delete_hierarchy;
 
 use std::f32::consts::FRAC_PI_3;
-
-//pub const GAME_WIDTH: f32 = 500.0;
-//pub const GAME_HEIGHT: f32 = 500.0;
 
 #[derive(Debug, Deserialize, Serialize, PrefabData)]
 #[serde(deny_unknown_fields)]
@@ -102,7 +102,10 @@ pub struct PrefabResource {
     pub obstacle: Handle<Prefab<ObstaclePrefab>>,
 }
 
-pub struct MyState;
+#[derive(Default, Debug)]
+pub struct MyState {
+    ui_root: Option<Entity>
+}
 
 impl SimpleState for MyState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
@@ -144,12 +147,18 @@ impl SimpleState for MyState {
         data.world.insert(prefab_resource);
         data.world.insert(ObstacleSpawnData::default());
 
-        data.world.exec(|mut creator: UiCreator<'_>| {
-            creator.create("prefab/ui.ron", ());
-        });
+        self.ui_root = Some(data.world.exec(|mut creator: UiCreator<'_>| creator.create("ui/ui.ron", ())));
 
         initialize_camera(data.world);
         initialize_lights(data.world);
+    }
+
+    fn on_stop(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        if let Some(entity) = self.ui_root {
+            delete_hierarchy(entity, data.world).expect("Failed to remove game ui");
+        }
+
+        self.ui_root = None;
     }
 
     fn handle_event(
@@ -157,25 +166,19 @@ impl SimpleState for MyState {
         _data: StateData<'_, GameData<'_, '_>>,
         event: StateEvent
     ) -> SimpleTrans {
-        match &event {
+        match event {
             StateEvent::Window(event) => {
                 if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-                    Trans::Quit
+                    return Trans::Switch(Box::new(WelcomeState::default()));
                 } else {
                     Trans::None
                 }
             }
-            StateEvent::Ui(ui_event) => {
-//                info!(
-//                    "[HANDLE_EVENT] Interacted with a ui element: {:?}",
-//                    ui_event
-//                );
-                Trans::None
-            }
-            StateEvent::Input(input) => {
+            StateEvent::Input(_input) => {
 //                info!("Input Event detected: {:?}.", input);
                 Trans::None
             }
+            _ => Trans::None
         }
     }
 }

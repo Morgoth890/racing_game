@@ -11,10 +11,13 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
-use crate::rgame::{CameraConfig, ShipPrefab, FloorPrefab, ObstaclePrefab, MyState};
+use crate::rgame::{CameraConfig, ShipPrefab, FloorPrefab, ObstaclePrefab};
+use crate::screens::WelcomeState;
 
 mod rgame;
 mod systems;
+mod screens;
+mod util;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -53,7 +56,7 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderShaded3D::default()),
         )?;
 
-    let mut game = Application::build(assets_dir, MyState)?
+    let mut game = Application::build(assets_dir, WelcomeState::default())?
         .with_resource(arena_config)
         .build(game_data)?;
     game.run();
