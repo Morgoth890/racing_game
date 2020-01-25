@@ -1,5 +1,6 @@
 use amethyst::{
     core::Transform,
+    core::math::Vector3,
     ecs::{Join, ReadStorage, System, Entities}
 };
 use crate::rgame::{Ship, Obstacle, HitBox};
@@ -24,18 +25,22 @@ impl<'s> System<'s> for CollisionDetectionSystem {
                 let obstacle_transform = transform as &Transform;
                 let obstacle_hitbox = hitbox as &HitBox;
 
-                if is_in_range(ship_transform.translation().x - ship_hitbox.size.x, ship_transform.translation().x + ship_hitbox.size.x,
-                               obstacle_transform.translation().x - obstacle_hitbox.size.x, obstacle_transform.translation().x + obstacle_hitbox.size.x)
-                && is_in_range(ship_transform.translation().y - ship_hitbox.size.y, ship_transform.translation().y + ship_hitbox.size.y,
-                                   obstacle_transform.translation().y - obstacle_hitbox.size.y, obstacle_transform.translation().y + obstacle_hitbox.size.y)
-                && is_in_range(ship_transform.translation().z - ship_hitbox.size.z, ship_transform.translation().z + ship_hitbox.size.z,
-                                       obstacle_transform.translation().z - obstacle_hitbox.size.z, obstacle_transform.translation().z + obstacle_hitbox.size.z) {
+                if is_colliding(ship_transform.translation(), ship_hitbox, obstacle_transform.translation(), obstacle_hitbox) {
                     println!("Collided!");
                     entities.delete(obstacle_entity).unwrap();
                 }
             }
         }
     }
+}
+
+fn is_colliding(a1_pos: &Vector3<f32>, a1_hitbox: &HitBox, a2_pos: &Vector3<f32>, a2_hitbox: &HitBox) -> bool {
+    is_in_range(a1_pos.x - a1_hitbox.size.x, a1_pos.x + a1_hitbox.size.x,
+                   a2_pos.x - a2_hitbox.size.x, a2_pos.x + a2_hitbox.size.x)
+        && is_in_range(a1_pos.y - a1_hitbox.size.y, a1_pos.y + a1_hitbox.size.y,
+                       a2_pos.y - a2_hitbox.size.y, a2_pos.y + a2_hitbox.size.y)
+        && is_in_range(a1_pos.z - a1_hitbox.size.z, a1_pos.z + a1_hitbox.size.z,
+                       a2_pos.z - a2_hitbox.size.z, a2_pos.z + a2_hitbox.size.z)
 }
 
 fn is_in_range(a1: f32, a2: f32, b1: f32, b2: f32) -> bool {
