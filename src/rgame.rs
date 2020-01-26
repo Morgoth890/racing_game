@@ -102,6 +102,15 @@ pub struct PrefabResource {
     pub obstacle: Handle<Prefab<ObstaclePrefab>>,
 }
 
+#[derive(Default)]
+pub struct GameState {
+    pub time: f32
+}
+
+pub struct GameOver {
+    pub score: i32
+}
+
 #[derive(Default, Debug)]
 pub struct MyState {
     ui_root: Option<Entity>
@@ -180,6 +189,7 @@ fn initialize_world_entities(world: &mut World) {
     };
     world.insert(prefab_resource);
     world.insert(ObstacleSpawnData::default());
+    world.insert(GameState::default());
 }
 
 fn initialize_camera(world: &mut World) {

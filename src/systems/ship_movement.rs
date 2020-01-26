@@ -4,7 +4,7 @@ use amethyst::{
     ecs::{Join, Read, ReadStorage, System, WriteStorage},
     input::{InputHandler, StringBindings},
 };
-use crate::rgame::Ship;
+use crate::rgame::{Ship, GameOver};
 
 const MOVE_SPEED: f32 = 3.0;
 
@@ -14,11 +14,16 @@ impl<'s> System<'s> for ShipMovementSystem {
     type SystemData = (
         WriteStorage<'s, Transform>,
         ReadStorage<'s, Ship>,
+        Option<Read<'s, GameOver>>,
         Read<'s, Time>,
         Read<'s, InputHandler<StringBindings>>,
     );
 
-    fn run(&mut self, (mut transforms, ships, time, input): Self::SystemData) {
+    fn run(&mut self, (mut transforms, ships, game_over, time, input): Self::SystemData) {
+        if let Some(_) = game_over {
+            return;
+        }
+
         for (transform, _ship) in (&mut transforms, &ships).join() {
             let transform = transform as &mut Transform;
 

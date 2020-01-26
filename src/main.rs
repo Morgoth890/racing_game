@@ -45,6 +45,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::ShipMovementSystem, "ship_system", &[])
         .with(systems::ObstacleSpawnSystem, "obstacle_spawn_system", &[])
         .with(systems::CollisionDetectionSystem, "collision_detection_system", &[])
+        .with(systems::ScoreUpdateSystem, "score_update_system", &[])
         .with_bundle(input_bundle)?
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()

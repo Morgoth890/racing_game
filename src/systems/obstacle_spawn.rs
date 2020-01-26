@@ -6,7 +6,7 @@ use amethyst::{
     ecs::prelude::Builder,
 };
 use rand::{thread_rng, Rng};
-use crate::rgame::{Obstacle, ObstacleSpawnData, PrefabResource, HitBox};
+use crate::rgame::{Obstacle, ObstacleSpawnData, PrefabResource, HitBox, GameOver};
 
 const SPAWN_INTERVAL: f32 = 1.0;
 
@@ -17,11 +17,16 @@ impl<'s> System<'s> for ObstacleSpawnSystem {
         Entities<'s>,
         Option<Read<'s, PrefabResource>>,
         Write<'s, ObstacleSpawnData>,
+        Option<Read<'s, GameOver>>,
         Read<'s, Time>,
         ReadExpect<'s, LazyUpdate>,
     );
 
-    fn run(&mut self, (entities, prefab_resource_opt, mut obstacle_spawn_data, time, lazy_update): Self::SystemData) {
+    fn run(&mut self, (entities, prefab_resource_opt, mut obstacle_spawn_data, game_over, time, lazy_update): Self::SystemData) {
+        if let Some(_) = game_over {
+            return;
+        }
+
         let absolute_time = time.absolute_time_seconds();
 
         if let Some(prefab_resource) = prefab_resource_opt {

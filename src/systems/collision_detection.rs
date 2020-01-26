@@ -1,33 +1,43 @@
 use amethyst::{
     core::Transform,
     core::math::Vector3,
-    ecs::{Join, ReadStorage, System, Entities}
+    ecs::{Join, Read, ReadStorage, ReadExpect, System, LazyUpdate}
 };
-use crate::rgame::{Ship, Obstacle, HitBox};
+use crate::rgame::{Ship, Obstacle, HitBox, GameState, GameOver};
 
 pub struct CollisionDetectionSystem;
 
 impl<'s> System<'s> for CollisionDetectionSystem {
     type SystemData = (
-        Entities<'s>,
         ReadStorage<'s, Ship>,
         ReadStorage<'s, Obstacle>,
         ReadStorage<'s, Transform>,
         ReadStorage<'s, HitBox>,
+        Read<'s, GameState>,
+        Option<Read<'s, GameOver>>,
+        ReadExpect<'s, LazyUpdate>,
     );
 
-    fn run(&mut self, (entities, ships, obstacles, transforms, hitboxes): Self::SystemData) {
+    fn run(&mut self, (ships, obstacles, transforms, hitboxes, game_state, game_over, lazy_update): Self::SystemData) {
+        if let Some(_) = game_over {
+            return;
+        }
+
         for (_, transform, hitbox) in (&ships, &transforms, &hitboxes).join() {
             let ship_transform = transform as &Transform;
             let ship_hitbox = hitbox as &HitBox;
 
-            for (obstacle_entity, _, transform, hitbox) in (&*entities, &obstacles, &transforms, &hitboxes).join() {
+            for (_, transform, hitbox) in (&obstacles, &transforms, &hitboxes).join() {
                 let obstacle_transform = transform as &Transform;
                 let obstacle_hitbox = hitbox as &HitBox;
 
                 if is_colliding(ship_transform.translation(), ship_hitbox, obstacle_transform.translation(), obstacle_hitbox) {
-                    println!("Collided!");
-                    entities.delete(obstacle_entity).unwrap();
+                    let final_score = (game_state.time * 10.0) as i32;
+                    println!("Collided! score: {}", final_score);
+
+                    lazy_update.exec_mut(move |world| {
+                        world.insert(GameOver { score: final_score });
+                    });
                 }
             }
         }
